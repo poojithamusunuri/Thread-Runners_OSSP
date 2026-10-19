@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>ProcScope — Process Explorer</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="ProcScope home">
+        <span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 7h8v7H5zM19 7h8v7h-8zM12 22h8v6h-8zM9 14v4h14v-4M16 18v4"/></svg></span>
+        <span><strong>ProcScope</strong><small>LINUX PROCESS INSIGHTS</small></span>
+      </a>
+      <div class="nav-label">WORKSPACE</div>
+      <nav class="navigation" aria-label="Main navigation">
+        <a class="nav-item active" href="#explorer" data-view="explorer" aria-current="page"><span>⌘</span> Explorer <em>01</em></a>
+        <a class="nav-item" href="#timeline" data-view="timeline"><span>◷</span> Timeline <em>02</em></a>
+        <a class="nav-item" href="#lab" data-view="lab"><span>⚗</span> Lab <em>03</em></a>
+        <a class="nav-item" href="#reports" data-view="reports"><span>▤</span> Reports <em>04</em></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="local-card"><span class="local-dot"></span><div><strong>Local system</strong><small>Read-only inspection</small></div></div>
+        <div class="sidebar-foot">PROC SCOPE <span>v1.0 · REVIEW BUILD</span></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="crumb"><span>Workspace</span><b>/</b><strong>Process Explorer</strong></div>
+        <div class="top-status"><span class="status-dot" id="status-dot"></span><span id="connection-label">Connecting to collector…</span><span class="divider"></span><span class="platform-pill">LINUX / PROCFS</span></div>
+      </header>
+      <div id="explorer-view">
+      <section class="page-heading">
+        <div><div class="eyebrow">SYSTEM VISIBILITY</div><h1>Process Explorer</h1><p class="page-subtitle">See what is running and how each process connects to the next.</p></div>
+        <div class="heading-actions"><button class="button button-secondary" id="collapse-all" type="button">Collapse all</button><button class="button button-primary" id="refresh-now" type="button"><span aria-hidden="true">↻</span> Refresh now</button></div>
+      </section>
+
+      <section class="metric-grid" aria-label="System summary">
+        <article class="metric-card"><div class="metric-top"><span class="metric-icon blue">▦</span><span class="metric-label">VISIBLE PROCESSES</span></div><div class="metric-value" id="process-count">—</div><div class="metric-note">Processes read from this snapshot</div></article>
+        <article class="metric-card"><div class="metric-top"><span class="metric-icon violet">⌘</span><span class="metric-label">TREE ROOTS</span></div><div class="metric-value" id="root-count">—</div><div class="metric-note">Top-level visible branches</div></article>
+        <article class="metric-card"><div class="metric-top"><span class="metric-icon teal">◷</span><span class="metric-label">LAST SNAPSHOT</span></div><div class="metric-value metric-time" id="snapshot-time">—</div><div class="metric-note" id="snapshot-duration">Waiting for first snapshot</div></article>
+        <article class="metric-card"><div class="metric-top"><span class="metric-icon amber">!</span><span class="metric-label">COLLECTION NOTES</span></div><div class="metric-value" id="warning-count">—</div><div class="metric-note" id="skipped-count">Skipped records: —</div></article>
+      </section>
+
+      <section class="explorer-layout">
+        <article class="panel tree-panel">
+          <div class="panel-heading tree-heading"><div><h2>Live process tree</h2><p>Choose a process to inspect its details.</p></div><span class="live-badge"><span></span> LIVE SNAPSHOTS</span></div>
+          <div class="explorer-modes" role="group" aria-label="Process organization view">
+            <button class="mode-button active" type="button" data-explorer-mode="tree" aria-pressed="true">Hierarchy</button>
+            <button class="mode-button" type="button" data-explorer-mode="groups" aria-pressed="false">Process groups</button>
+            <button class="mode-button" type="button" data-explorer-mode="sessions" aria-pressed="false">Sessions</button>
+            <button class="mode-button" type="button" data-explorer-mode="threads" aria-pressed="false">Threads</button>
+            <button class="mode-button" type="button" data-explorer-mode="cgroups" aria-pressed="false">Cgroups</button>
+          </div>
+          <div class="tree-toolbar"><label class="search-box"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="Search name or process ID…" autocomplete="off" aria-label="Search processes"><kbd> / </kbd></label><button id="family-toggle" class="button button-secondary family-toggle" type="button" aria-pressed="false" title="Highlight this process and its ancestors and descendants">Follow family</button><span id="tree-result-count" class="result-count">Waiting for data</span></div>
+          <div class="tree-legend"><span><i class="legend-dot running"></i> Running</span><span><i class="legend-dot sleeping"></i> Sleeping</span><span><i class="legend-dot other"></i> Other state</span></div>
+          <div id="tree-container" class="tree-container" role="tree" aria-label="Linux process hierarchy"><div class="loading-state"><span class="spinner"></span><strong>Reading live processes</strong><p>Connecting to the local Linux collector…</p></div></div>
+          <div class="tree-footer"><span><span class="status-dot" id="footer-status"></span> <span id="footer-message">Waiting for collector</span></span><span>Refreshes every 2 seconds</span></div>
+        </article>
+
+        <aside class="panel detail-panel" aria-label="Selected process details">
+          <div class="panel-heading"><div><h2>Process details</h2><p>Selected process information</p></div><span class="detail-symbol">⌘</span></div>
+          <div id="detail-content" class="detail-content"><div class="empty-detail"><div class="empty-icon">⌖</div><strong>Select a process</strong><p>Choose any row in the tree to view its identity, state, and available resource information.</p></div></div>
+          <div class="detail-footnote"><span class="info-icon">i</span><p>Process information can change while it is being collected. Unavailable values are shown as unavailable, not as zero.</p></div>
+        </aside>
+      </section>
+      <section class="notice-bar"><span class="notice-icon">i</span><p><strong>About live data</strong> ProcScope takes read-only snapshots from Linux <code>/proc</code>. Very short-lived processes may appear between snapshots and not be captured. A visible tree root can mean its parent was not present in the same snapshot.</p></section>
+      </div>
+      <section id="timeline-view" class="timeline-view view-hidden" aria-labelledby="timeline-title">
+        <div class="page-heading"><div><div class="eyebrow">PROCESS ACTIVITY</div><h1 id="timeline-title">Activity Timeline</h1><p class="page-subtitle">See changes between process snapshots, with a clear label explaining how each item was detected.</p></div><div class="heading-actions"><button class="button button-secondary" id="timeline-refresh" type="button">Refresh timeline</button></div></div>
+        <div class="timeline-notice"><strong>How to read this timeline</strong><p>Each entry is labelled by how it was detected. Snapshot-inferred entries are estimated by comparing reads of <code>/proc</code>; observed entries come from kernel process events when event mode is available. Snapshot comparisons can miss very short-lived processes, and event collection can be unavailable or lose events. A process missing from a snapshot may have exited or may simply have been unreadable.</p></div>
+        <div class="timeline-toolbar"><div><h2>Recent observations</h2><p id="timeline-count">Waiting for the first snapshot…</p></div><label class="timeline-filter-label" for="timeline-filter">Show <select id="timeline-filter"><option value="all">All observations</option><option value="appeared">Processes first seen</option><option value="disappeared">Processes no longer visible</option><option value="state">State changes</option><option value="parent">Parent changes</option><option value="pid-reuse">PID identity changes</option><option value="baseline">Baseline records</option><option value="fork">Kernel fork events</option><option value="exec">Kernel exec events</option><option value="exit">Kernel exit events</option></select></label></div>
+        <div id="timeline-events" class="timeline-events" aria-live="polite"><div class="loading-state"><span class="spinner"></span><strong>Waiting for process snapshots</strong><p>Observations appear as ProcScope compares successive snapshots.</p></div></div>
+        <details class="timeline-limitations"><summary>Collection method and limitations</summary><ul id="timeline-limitations"><li>Loading timeline diagnostics…</li></ul></details>
+      </section>
+      <section id="lab-view" class="lab-view view-hidden" aria-labelledby="lab-title">
+        <div class="page-heading"><div><div class="eyebrow">GUIDED OPERATING-SYSTEM EXPERIMENTS</div><h1 id="lab-title">Process Lab</h1><p class="page-subtitle">Run small, controlled C experiments and observe their processes in the Explorer.</p></div><div class="heading-actions"><button class="button button-secondary" id="lab-refresh" type="button">Refresh experiments</button></div></div>
+        <div class="lab-safety-notice"><strong>Safe, controlled experiments</strong><p>ProcScope only launches the predefined experiments shipped with this project. They run as your current user, are time-limited, and can be stopped from this page. Do not run experiments on a production-critical machine. No root privileges are required.</p></div>
+        <div class="lab-toolbar"><div><h2>Choose an experiment</h2><p>Each experiment explains what to look for and why it matters.</p></div><span id="lab-compiler-status" class="timeline-tag">Checking C compiler…</span></div>
+        <div id="lab-experiments" class="lab-experiment-grid"><div class="timeline-empty">Loading available experiments…</div></div>
+        <section class="lab-runs-section"><div class="lab-toolbar"><div><h2>Experiment activity</h2><p>Only runs started by this ProcScope session appear here.</p></div><button class="button button-secondary" id="lab-cleanup-all" type="button">Stop all lab runs</button></div><div id="lab-runs" class="lab-runs"><div class="timeline-empty">No experiments started yet.</div></div></section>
+      </section>
+      <section id="reports-view" class="reports-view view-hidden" aria-labelledby="reports-title">
+        <div class="page-heading"><div><div class="eyebrow">EXPORT & DIAGNOSTICS</div><h1 id="reports-title">Reports</h1><p class="page-subtitle">Save a point-in-time report, compare snapshots, and inspect collection capabilities.</p></div><div class="heading-actions"><button class="button button-secondary" id="reports-refresh" type="button">Refresh diagnostics</button></div></div>
+        <div class="timeline-notice"><strong>Privacy and accuracy</strong><p>Reports are generated locally. Command-line arguments can contain sensitive data, so redaction is enabled by default. Snapshot comparisons are best-effort and are not an atomic view of the system.</p></div>
+        <div class="report-grid">
+          <article class="panel report-card"><div class="panel-heading"><div><h2>Current snapshot</h2><p>Export the latest process snapshot and collection notes.</p></div></div><label class="report-check"><input id="report-redact" type="checkbox" checked> Redact command-line arguments and executable paths</label><button class="button button-primary" id="export-json" type="button">Export snapshot JSON</button><button class="button button-secondary" id="export-csv" type="button">Export process table CSV</button><p class="report-help">Exports include capture time, boot identity, process relationships, and available data. Unavailable values remain unavailable.</p></article>
+          <article class="panel report-card"><div class="panel-heading"><div><h2>Snapshot comparison</h2><p>Compare the latest snapshot with the previous one captured in this browser session.</p></div></div><div id="snapshot-diff" class="report-diff"><strong>Waiting for snapshots</strong><p>ProcScope will keep the previous in-memory snapshot while this page is open.</p></div><button class="button button-secondary" id="compare-snapshots" type="button">Compare now</button><p class="report-help">Processes can start or exit during collection. Changes are estimates based on process identity and snapshot timing.</p></article>
+          <article class="panel report-card report-wide"><div class="panel-heading"><div><h2>Collection diagnostics</h2><p>Baseline collection is always available independently of optional event collection.</p></div><span id="event-mode-badge" class="timeline-tag">Snapshot baseline</span></div><div id="diagnostics-content" class="diagnostics-content">Loading diagnostics…</div><div class="report-actions"><button class="button button-secondary" id="event-start" type="button">Try event mode</button><button class="button button-secondary" id="event-stop" type="button">Stop event mode</button></div><p class="report-help">Linux process connector availability depends on kernel configuration and permissions. Event collection may lose events; it is not a complete audit log. If unavailable, ProcScope continues using snapshots.</p><div id="event-message" class="event-message" role="status">Event mode has not been started.</div></article>
+        </div>
+      </section>
+      <footer class="page-footer"><span>ProcScope <span class="footer-muted">· Linux Process Tree Visualizer</span></span><span id="boot-label">Boot identity: unavailable</span></footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
